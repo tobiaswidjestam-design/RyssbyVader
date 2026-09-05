@@ -49,6 +49,7 @@ public class WeatherGui {
     private RegnPanel regnPanel;
     private JLabel statusLabel;
     private JButton uppdateraKnapp;
+    private javax.swing.Timer autoUppdaterare;
 
     /** Skapar och visar fönstret. */
     public static void visa() {
@@ -150,10 +151,20 @@ public class WeatherGui {
         frame.setVisible(true);
 
         hamtaVader(); // hämta vädret direkt när appen startar
+
+        // Håll vädret aktuellt: uppdatera automatiskt var 10:e minut
+        // (open-meteos modeller uppdateras ändå bara ca var 15:e minut)
+        autoUppdaterare = new javax.swing.Timer(10 * 60 * 1000, e -> hamtaVader());
+        autoUppdaterare.start();
     }
 
     /** Hämtar väderdatat i bakgrunden så att fönstret inte fryser. */
     private void hamtaVader() {
+        // Starta om nedräkningen för automatisk uppdatering
+        if (autoUppdaterare != null) {
+            autoUppdaterare.restart();
+        }
+
         uppdateraKnapp.setEnabled(false);
         statusLabel.setText("Hämtar väderdata…");
 
