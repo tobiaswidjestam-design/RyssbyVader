@@ -35,6 +35,11 @@ public class WeatherGui {
 
     private static final Locale SV_LOCALE = Locale.of("sv", "SE");
 
+    /** Namn på klockslagen som visas under timdiagrammet. */
+    private static final String[] TIDSNAVN = {
+            "Midnatt", "Natt", "Morgon", "Förmiddag", "Lunch", "Eftermiddag", "Kväll", "Sen kväll"
+    };
+
     private JFrame frame;
     private JLabel tempLabel;
     private JLabel vindLabel;
@@ -280,6 +285,7 @@ public class WeatherGui {
             // Baslinjen under staplarna
             g.setColor(new Color(200, 200, 200));
             g.drawLine(12, botten, bredd - 12, botten);
+            g.setFont(g.getFont().deriveFont(10f));
 
             for (int i = 0; i < regn.length; i++) {
                 int x = 12 + i * steg;
@@ -291,10 +297,17 @@ public class WeatherGui {
                     g.fillRect(x + 1, botten - bh, stapelBredd, bh);
                 }
 
-                // Skriv ut timmen var tredje timme: 00, 03, 06 ...
+                // Skriv ut tidsnamn var tredje timme, i två rader så att
+                // namnen inte krockar med varandra
                 if (i % 3 == 0) {
                     g.setColor(new Color(140, 140, 140));
-                    g.drawString(String.format("%02d", i), x, hojd - 6);
+                    String namn = TIDSNAVN[i / 3];
+                    int xText = x + steg / 2 - g.getFontMetrics().stringWidth(namn) / 2;
+                    if (i % 6 == 0) {
+                        g.drawString(namn, xText, hojd - 16);
+                    } else {
+                        g.drawString(namn, xText, hojd - 4);
+                    }
                 }
             }
 
