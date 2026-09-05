@@ -3,6 +3,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,13 +16,19 @@ public class WeatherService {
 
     private static final String URL =
             "https://api.open-meteo.com/v1/forecast?latitude=56.93&longitude=14.33"
-            + "&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto";
+            + "&current_weather=true"
+            + "&hourly=precipitation"
+            + "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto";
 
     /** Prognosen för en enskild dag. */
     public record DagsPrognos(LocalDate datum, double maxTemp, double minTemp, double regn) {}
 
+    /** Nederbörden för en enskild timme. */
+    public record TimmarsNederbord(LocalDateTime tid, double mm) {}
+
     /** All väderdata som GUI:t/konsolen visar. */
-    public record VaderData(double temperatur, double vindhastighet, List<DagsPrognos> dagar) {}
+    public record VaderData(double temperatur, double vindhastighet,
+                            List<DagsPrognos> dagar, List<TimmarsNederbord> timmar) {}
 
     /** Hämtar väderdatat från API:et och tolkar svaret. */
     public static VaderData hamtaVader() throws Exception {
@@ -57,7 +64,18 @@ public class WeatherService {
                     hamtaTalEller(precipDays, i)));
         }
 
-        return new VaderData(temp, vind, dagar);
+        // 3. Hämta nederbörd per timme (under "hourly")
+        int hourlyIdx = json.indexOf("\"hourly\":");
+        String[] hourlyTider = hamtaArray(json, hourlyIdx, "time");
+        String[] hourlyRegn = hamtaArray(json, hourlyIdx, "precipitation");
+
+        List<TimmarsNederbord> timmar = new ArrayList<>();
+        for (int i = 0; i < hourlyTider.length; i++) {
+            double mm = i < hourlyRegn.length ? Double.parseDouble(hourlyRegn[i].trim()) : 0;
+            timmar.add(new TimmarsNederbord(LocalDateTime.parse(hourlyTider[i].trim()), mm));
+        }
+
+        return new VaderData(temp, vind, dagar, timmar);
     }
 
     /** Hittar ett tal efter en nyckel, t.ex. "temperature": 12.4 */
