@@ -17,6 +17,7 @@ public class WeatherService {
     private static final String URL =
             "https://api.open-meteo.com/v1/forecast?latitude=56.93&longitude=14.33"
             + "&current_weather=true"
+            + "&windspeed_unit=ms"
             + "&hourly=precipitation"
             + "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto";
 
@@ -114,7 +115,8 @@ public class WeatherService {
         Locale svLocale = Locale.of("sv", "SE");
 
         System.out.println("=== VÄDER FÖR RYSSBY ===");
-        System.out.println("Just nu: " + formatera(vader.temperatur(), svLocale) + " °C\n");
+        System.out.println("Just nu: " + formatera(vader.temperatur(), svLocale) + " °C"
+                + ", Vind: " + formatera(vader.vindhastighet(), svLocale) + " m/s\n");
         System.out.println("Prognos kommande dagar:");
 
         List<DagsPrognos> dagar = vader.dagar();

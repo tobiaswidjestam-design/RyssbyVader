@@ -186,7 +186,7 @@ public class WeatherGui {
     private void visaVader(WeatherService.VaderData vader) {
         senasteData = vader;
         tempLabel.setText(formatera(vader.temperatur()) + " °C");
-        vindLabel.setText("Vind: " + formatera(vader.vindhastighet()) + " km/h");
+        vindLabel.setText("Vind: " + formatera(vader.vindhastighet()) + " m/s");
 
         tableModel.setRowCount(0); // töm tabellen
         List<WeatherService.DagsPrognos> dagar = vader.dagar();
