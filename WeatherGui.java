@@ -81,7 +81,7 @@ public class WeatherGui {
         tempLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         vindLabel = new JLabel(" ", SwingConstants.CENTER);
-        vindLabel.setForeground(new Color(90, 90, 90));
+        vindLabel.setForeground(Color.WHITE);
         vindLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         topp.add(rubrik);
@@ -138,7 +138,7 @@ public class WeatherGui {
         // --- Nederst: statusrad + uppdateraknapp ---
         JPanel botten = new JPanel(new BorderLayout(8, 0));
         statusLabel = new JLabel("Startar…");
-        statusLabel.setForeground(new Color(90, 90, 90));
+        statusLabel.setForeground(Color.WHITE);
         uppdateraKnapp = new JButton("Uppdatera");
         uppdateraKnapp.addActionListener(e -> hamtaVader());
         botten.add(statusLabel, BorderLayout.CENTER);
@@ -257,7 +257,7 @@ public class WeatherGui {
             int hojd = getHeight();
 
             if (regn.length == 0) {
-                g.setColor(new Color(120, 120, 120));
+                g.setColor(Color.WHITE);
                 g.drawString("Välj en dag i tabellen ovan för att se regnet timme för timme.", 12, 22);
                 return;
             }
@@ -310,14 +310,14 @@ public class WeatherGui {
 
                     int xText = x + stapelBredd / 2 + 1 - g.getFontMetrics().stringWidth(antal) / 2;
                     int yText = Math.max(botten - bh - (hogNiva ? 17 : 5), 34);
-                    g.setColor(new Color(150, 150, 150));
+                    g.setColor(Color.WHITE);
                     g.drawString(antal, xText, yText);
                 }
 
                 // Skriv ut tidsnamn var tredje timme, i två rader så att
                 // namnen inte krockar med varandra
                 if (i % 3 == 0) {
-                    g.setColor(new Color(140, 140, 140));
+                    g.setColor(Color.WHITE);
                     String namn = TIDSNAVN[i / 3];
                     int xText = x + steg / 2 - g.getFontMetrics().stringWidth(namn) / 2;
                     if (i % 6 == 0) {
@@ -329,7 +329,7 @@ public class WeatherGui {
             }
 
             if (summa == 0) {
-                g.setColor(new Color(120, 120, 120));
+                g.setColor(Color.WHITE);
                 g.drawString("Ingen nederbörd den här dagen ☀", 12, botten - maxBarHojd / 2);
             }
         }
