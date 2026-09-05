@@ -287,6 +287,11 @@ public class WeatherGui {
             g.drawLine(12, botten, bredd - 12, botten);
             g.setFont(g.getFont().deriveFont(10f));
 
+            // Etiketterna varvar mellan två nivåer när timmar med regn
+            // ligger bredvid varandra, så att siffrorna inte krockar
+            int forraRegnTimme = -2;
+            boolean hogNiva = false;
+
             for (int i = 0; i < regn.length; i++) {
                 int x = 12 + i * steg;
                 int bh = maxMm > 0 ? (int) Math.round(regn[i] / maxMm * maxBarHojd) : 0;
@@ -295,6 +300,18 @@ public class WeatherGui {
                     // Mörkare blå för kraftigt regn (>= 1 mm)
                     g.setColor(regn[i] >= 1.0 ? new Color(41, 98, 255) : new Color(108, 160, 220));
                     g.fillRect(x + 1, botten - bh, stapelBredd, bh);
+
+                    // Antal mm ovanför stapeln där det är nederbörd
+                    // (hela tal från 10 mm, annars en decimal)
+                    String antal = regn[i] >= 10 ? String.format(SV_LOCALE, "%.0f", regn[i])
+                                                 : String.format(SV_LOCALE, "%.1f", regn[i]);
+                    hogNiva = (i == forraRegnTimme + 1) ? !hogNiva : false;
+                    forraRegnTimme = i;
+
+                    int xText = x + stapelBredd / 2 + 1 - g.getFontMetrics().stringWidth(antal) / 2;
+                    int yText = Math.max(botten - bh - (hogNiva ? 17 : 5), 34);
+                    g.setColor(new Color(150, 150, 150));
+                    g.drawString(antal, xText, yText);
                 }
 
                 // Skriv ut tidsnamn var tredje timme, i två rader så att
