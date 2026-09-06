@@ -6,6 +6,8 @@ Grafisk väderapp skriven i ren Java (Swing) för Ryssby, med data från [open-m
 - Aktuell temperatur och vind (m/s)
 - 5-dagarsprognos med max/min-temperatur och total nederbörd
 - Klicka på en dag för att se **nederbörden timme för timme** som stapeldiagram, med mm-värden ovanför varje stapel
+- Tidsintervall natt, morgon, eftermiddag och kväll med alla timvärden samlade
+- Skriv ut intervalltabellen för den valda dagen
 - Automatisk uppdatering var 10:e minut + manuell "Uppdatera"-knapp
 - Textläge i terminalen: `./run.sh --console`
 

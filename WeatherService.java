@@ -120,7 +120,7 @@ public class WeatherService {
         System.out.println("Prognos kommande dagar:");
 
         List<DagsPrognos> dagar = vader.dagar();
-        for (int i = 0; i < 5 && i < dagar.size(); i++) {
+        for (int i = 0; i < 7 && i < dagar.size(); i++) {
             DagsPrognos dag = dagar.get(i);
             System.out.println(formateraDag(dag.datum(), svLocale)
                     + " -> Max: " + formatera(dag.maxTemp(), svLocale) + " °C"
