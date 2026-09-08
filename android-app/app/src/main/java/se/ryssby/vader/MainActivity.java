@@ -59,6 +59,9 @@ public class MainActivity extends Activity {
     private EditText cityInput;
     private Button refreshButton;
     private Button darkModeButton;
+    private LinearLayout hourlyChips;
+    private WeatherData lastData;
+    private int selectedHourlyDay = 0;
     private final DecimalFormat numberFormat = new DecimalFormat("0.0");
 
     @Override
@@ -175,6 +178,14 @@ public class MainActivity extends Activity {
         TextView hourlyTitle = text("Timme för timme", 22, darkMode ? Color.WHITE : Color.rgb(19, 57, 79));
         hourlyTitle.setTypeface(null, 1);
         page.addView(hourlyTitle, marginParams(0, 18, 0, 10));
+
+        // Dagväljare: en knapp per dag i prognosen
+        HorizontalScrollView chipScroll = new HorizontalScrollView(this);
+        chipScroll.setHorizontalScrollBarEnabled(false);
+        hourlyChips = new LinearLayout(this);
+        hourlyChips.setOrientation(LinearLayout.HORIZONTAL);
+        chipScroll.addView(hourlyChips, new HorizontalScrollView.LayoutParams(-2, -2));
+        page.addView(chipScroll, matchWrap());
 
         HorizontalScrollView hourlyScroll = new HorizontalScrollView(this);
         hourlyScroll.setHorizontalScrollBarEnabled(false);
@@ -306,7 +317,7 @@ public class MainActivity extends Activity {
                 days[index] = new WeatherDay(dates.getString(index), max.optDouble(index),
                         min.optDouble(index), rain.optDouble(index));
             }
-            int hourCount = Math.min(hourlyTimes.length(), 12);
+            int hourCount = hourlyTimes.length();
             WeatherHour[] hours = new WeatherHour[hourCount];
             for (int index = 0; index < hourCount; index++) {
                 hours[index] = new WeatherHour(hourlyTimes.getString(index),
@@ -329,32 +340,11 @@ public class MainActivity extends Activity {
         currentCondition.setTextColor(weatherTextColor(data.temperature));
         weatherIcon.setText(weatherIconFor(data.temperature, data.wind));
         forecastContainer.removeAllViews();
-        hourlyContainer.removeAllViews();
-
-        for (WeatherHour hour : data.hours) {
-            LinearLayout hourCard = new LinearLayout(this);
-            hourCard.setOrientation(LinearLayout.VERTICAL);
-            hourCard.setPadding(dp(14), dp(12), dp(14), dp(12));
-            hourCard.setBackground(cardBackground(darkMode ? Color.rgb(26, 47, 68) : Color.rgb(213, 235, 245), 18));
-            hourCard.setLayoutParams(new LinearLayout.LayoutParams(-2, -2));
-            LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) hourCard.getLayoutParams();
-            params.setMargins(0, 0, dp(8), 0);
-
-            TextView hourLabel = text(shortHour(hour.time), 12,
-                darkMode ? Color.rgb(193, 219, 246) : Color.rgb(72, 98, 116));
-            hourCard.addView(hourLabel, matchWrap());
-
-            TextView hourTemp = text(numberFormat.format(hour.temperature) + "°", 20,
-                darkMode ? Color.WHITE : Color.rgb(17, 50, 72));
-            hourTemp.setTypeface(null, 1);
-            hourCard.addView(hourTemp, marginParams(0, 6, 0, 0));
-
-            TextView hourRain = text(numberFormat.format(hour.rain) + " mm", 11,
-                darkMode ? Color.rgb(154, 198, 255) : Color.rgb(25, 116, 126));
-            hourCard.addView(hourRain, marginParams(0, 4, 0, 0));
-
-            hourlyContainer.addView(hourCard);
+        lastData = data;
+        if (selectedHourlyDay >= data.days.length) {
+            selectedHourlyDay = 0;
         }
+        renderHourlySection(data);
 
         for (WeatherDay day : data.days) {
             LinearLayout row = new LinearLayout(this);
@@ -509,6 +499,73 @@ public class MainActivity extends Activity {
         if (!city.isEmpty()) {
             loadWeatherForCity(city);
         }
+    }
+
+    /** Ritar dagväljarna och timkorten (00:00–23:00) för vald dag. */
+    private void renderHourlySection(WeatherData data) {
+        hourlyChips.removeAllViews();
+        hourlyContainer.removeAllViews();
+        for (int i = 0; i < data.days.length; i++) {
+            final int index = i;
+            WeatherDay day = data.days[i];
+            boolean selected = index == selectedHourlyDay;
+            Button chip = new Button(this);
+            chip.setAllCaps(false);
+            chip.setTextSize(13f);
+            chip.setText(chipLabel(day.date));
+            chip.setTextColor(selected ? Color.WHITE
+                    : (darkMode ? Color.rgb(193, 219, 246) : Color.rgb(17, 50, 72)));
+            chip.setBackground(cardBackground(selected ? Color.rgb(41, 98, 255)
+                    : (darkMode ? Color.rgb(26, 47, 68) : Color.WHITE), 14));
+            chip.setOnClickListener(view -> {
+                selectedHourlyDay = index;
+                renderHourlySection(lastData);
+            });
+            LinearLayout.LayoutParams chipParams = new LinearLayout.LayoutParams(-2, -2);
+            chipParams.setMargins(0, 0, dp(8), 0);
+            hourlyChips.addView(chip, chipParams);
+        }
+
+        if (selectedHourlyDay >= data.days.length) {
+            return;
+        }
+        String dayPrefix = data.days[selectedHourlyDay].date + "T";
+        for (WeatherHour hour : data.hours) {
+            if (!hour.time.startsWith(dayPrefix)) {
+                continue;
+            }
+            LinearLayout hourCard = new LinearLayout(this);
+            hourCard.setOrientation(LinearLayout.VERTICAL);
+            hourCard.setPadding(dp(14), dp(12), dp(14), dp(12));
+            hourCard.setBackground(cardBackground(darkMode ? Color.rgb(26, 47, 68) : Color.rgb(213, 235, 245), 18));
+            hourCard.setLayoutParams(new LinearLayout.LayoutParams(-2, -2));
+            LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) hourCard.getLayoutParams();
+            params.setMargins(0, 0, dp(8), 0);
+
+            TextView hourLabel = text(shortHour(hour.time), 12,
+                    darkMode ? Color.rgb(193, 219, 246) : Color.rgb(72, 98, 116));
+            hourCard.addView(hourLabel, matchWrap());
+
+            TextView hourTemp = text(numberFormat.format(hour.temperature) + "°", 20,
+                    darkMode ? Color.WHITE : Color.rgb(17, 50, 72));
+            hourTemp.setTypeface(null, 1);
+            hourCard.addView(hourTemp, marginParams(0, 6, 0, 0));
+
+            TextView hourRain = text(numberFormat.format(hour.rain) + " mm", 11,
+                    darkMode ? Color.rgb(154, 198, 255) : Color.rgb(25, 116, 126));
+            hourCard.addView(hourRain, marginParams(0, 4, 0, 0));
+
+            hourlyContainer.addView(hourCard);
+        }
+    }
+
+    /** Kort etikett för en dag, t.ex. "Tis 8/9". */
+    private static String chipLabel(String date) {
+        Locale sv = new Locale("sv", "SE");
+        LocalDate dag = LocalDate.parse(date);
+        String vardag = dag.getDayOfWeek().getDisplayName(TextStyle.SHORT, sv);
+        return vardag.substring(0, 1).toUpperCase(sv) + vardag.substring(1)
+                + " " + dag.getDayOfMonth() + "/" + dag.getMonthValue();
     }
 
     private void showError(Exception exception) {
