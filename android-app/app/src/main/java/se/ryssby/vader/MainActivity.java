@@ -43,7 +43,7 @@ public class MainActivity extends Activity {
             + "?name=%s&count=1&language=sv&format=json";
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private final List<String> favoriteCities = new ArrayList<>(Arrays.asList("Ryssby", "Boda Glasbruk", "Cebu City"));
+    private final List<String> favoriteCities = new ArrayList<>(Arrays.asList("Ryssby", "Boda Glasbruk", "Cebu City", "Bohol"));
     private boolean darkMode = false;
     private LinearLayout forecastContainer;
     private LinearLayout hourlyContainer;
