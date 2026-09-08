@@ -304,7 +304,7 @@ public class MainActivity extends Activity {
                 + "&current_weather=true"
             + "&windspeed_unit=ms"
             + "&hourly=temperature_2m,precipitation,windspeed_10m"
-            + "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum"
+            + "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode"
                 + "&timezone=auto";
 
         HttpURLConnection connection = (HttpURLConnection) new URL(apiUrl).openConnection();
@@ -329,6 +329,7 @@ public class MainActivity extends Activity {
             JSONArray max = daily.getJSONArray("temperature_2m_max");
             JSONArray min = daily.getJSONArray("temperature_2m_min");
             JSONArray rain = daily.getJSONArray("precipitation_sum");
+            JSONArray codes = daily.getJSONArray("weathercode");
             JSONArray hourlyTimes = hourly.getJSONArray("time");
             JSONArray hourlyTemp = hourly.getJSONArray("temperature_2m");
             JSONArray hourlyRain = hourly.getJSONArray("precipitation");
@@ -336,7 +337,7 @@ public class MainActivity extends Activity {
             WeatherDay[] days = new WeatherDay[dates.length()];
             for (int index = 0; index < dates.length(); index++) {
                 days[index] = new WeatherDay(dates.getString(index), max.optDouble(index),
-                        min.optDouble(index), rain.optDouble(index));
+                        min.optDouble(index), rain.optDouble(index), codes.optInt(index));
             }
             int hourCount = hourlyTimes.length();
             WeatherHour[] hours = new WeatherHour[hourCount];
@@ -377,6 +378,11 @@ public class MainActivity extends Activity {
                 selectedForecastDay = (selectedForecastDay == index) ? -1 : index;
                 updateCurrentCard();
             });
+
+            TextView rowIcon = text(iconForWeatherCode(day.code), 24, Color.rgb(17, 50, 72));
+            LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(-2, -2);
+            iconParams.setMargins(0, 0, dp(10), 0);
+            row.addView(rowIcon, iconParams);
 
             LinearLayout dayInfo = new LinearLayout(this);
             dayInfo.setOrientation(LinearLayout.VERTICAL);
@@ -462,7 +468,7 @@ public class MainActivity extends Activity {
             currentWind.setText("Vind " + numberFormat.format(lastData.wind) + " m/s");
         } else {
             double maxWind = maxWindForDay(day.date);
-            weatherIcon.setText("📅");
+            weatherIcon.setText(iconForWeatherCode(day.code));
             currentTemperature.setText(numberFormat.format(day.max) + " °C");
             currentCondition.setText("Prognos för dagen");
             currentCondition.setTextColor(darkMode ? Color.rgb(193, 219, 246) : Color.rgb(36, 79, 92));
@@ -490,6 +496,41 @@ public class MainActivity extends Activity {
             }
         }
         return max;
+    }
+
+    /** Väderikon utifrån WMO-väderkoden från Open-Meteo. */
+    private static String iconForWeatherCode(int code) {
+        switch (code) {
+            case 0: return "☀️";
+            case 1: return "🌤️";
+            case 2: return "⛅";
+            case 3: return "☁️";
+            case 45:
+            case 48: return "🌫️";
+            case 51:
+            case 53:
+            case 55:
+            case 56:
+            case 57: return "🌦️";
+            case 61:
+            case 63:
+            case 65:
+            case 66:
+            case 67:
+            case 80:
+            case 81:
+            case 82: return "🌧️";
+            case 71:
+            case 73:
+            case 75:
+            case 77:
+            case 85:
+            case 86: return "🌨️";
+            case 95:
+            case 96:
+            case 99: return "⛈️";
+            default: return "☁️";
+        }
     }
 
     private String weekday(String date) {
@@ -737,12 +778,14 @@ public class MainActivity extends Activity {
         final double max;
         final double min;
         final double rain;
+        final int code;
 
-        WeatherDay(String date, double max, double min, double rain) {
+        WeatherDay(String date, double max, double min, double rain, int code) {
             this.date = date;
             this.max = max;
             this.min = min;
             this.rain = rain;
+            this.code = code;
         }
     }
 }
