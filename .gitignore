@@ -1,3 +1,10 @@
 out/
 *.class
 .vscode/
+
+# Android Studio and Gradle build output
+android-app/.gradle/
+android-app/build/
+android-app/app/build/
+android-app/.idea/
+android-app/local.properties

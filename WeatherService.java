@@ -2,6 +2,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -13,6 +14,10 @@ import java.util.Locale;
  * Hämtar och tolkar väderdata för Ryssby från open-meteo.com.
  */
 public class WeatherService {
+
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .build();
 
     private static final String URL =
             "https://api.open-meteo.com/v1/forecast?latitude=56.93&longitude=14.33"
@@ -33,13 +38,13 @@ public class WeatherService {
 
     /** Hämtar väderdatat från API:et och tolkar svaret. */
     public static VaderData hamtaVader() throws Exception {
-        HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(URL))
+            .timeout(Duration.ofSeconds(20))
                 .GET()
                 .build();
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() != 200) {
             throw new IllegalStateException("API:et svarade med HTTP " + response.statusCode());
         }
@@ -112,7 +117,7 @@ public class WeatherService {
 
     /** Skriver ut vädret som text (gamla konsolläget, --console). */
     public static void skrivKonsol(VaderData vader) {
-        Locale svLocale = Locale.of("sv", "SE");
+        Locale svLocale = new Locale("sv", "SE");
 
         System.out.println("=== VÄDER FÖR RYSSBY ===");
         System.out.println("Just nu: " + formatera(vader.temperatur(), svLocale) + " °C"

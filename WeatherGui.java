@@ -33,7 +33,7 @@ import javax.swing.table.DefaultTableModel;
  */
 public class WeatherGui {
 
-    private static final Locale SV_LOCALE = Locale.of("sv", "SE");
+    private static final Locale SV_LOCALE = new Locale("sv", "SE");
     private static final Color BLA = new Color(30, 105, 170);
     private static final Color LJUS_BLA = new Color(226, 241, 250);
     private static final Color BAKGRUND = new Color(246, 249, 251);

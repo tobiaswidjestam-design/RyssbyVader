@@ -32,3 +32,9 @@ Krav: JDK 21 eller senare (utvecklad och testad med JDK 26).
 | `run.sh` | Starta appen (bygger först om `out/` saknas) |
 | `install-desktop.sh` | Installerar `.desktop`-startare på skrivbordet/menyn |
 | `icon.png` | Appikon (sol + moln) |
+
+## Android-version
+
+Android-versionen finns i mappen `android-app/`. Öppna den mappen som ett projekt i Android Studio, vänta tills Gradle-synkroniseringen är klar och tryck sedan på **Run**. Välj en emulator eller en ansluten Android-telefon.
+
+Den första Android-versionen visar aktuell temperatur, vind och femdagarsprognos från samma Open-Meteo-källa. Android Studio kan behöva ladda ner Gradle-pluginen första gången.
