@@ -199,6 +199,12 @@ public class MainActivity extends Activity {
         footer.addView(refreshButton, new LinearLayout.LayoutParams(-2, -2));
         page.addView(footer, matchWrap());
 
+        // Signatur längst ner så att man vet vem som utvecklat appen
+        TextView signature = text("StudioRyssby 2026", 12,
+                darkMode ? Color.rgb(126, 146, 158) : Color.rgb(140, 158, 168));
+        signature.setGravity(Gravity.CENTER);
+        page.addView(signature, marginParams(0, 16, 0, 0));
+
         setContentView(scrollView);
     }
 
