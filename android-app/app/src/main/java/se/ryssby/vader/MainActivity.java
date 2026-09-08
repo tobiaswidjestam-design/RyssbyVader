@@ -200,10 +200,11 @@ public class MainActivity extends Activity {
         page.addView(footer, matchWrap());
 
         // Signatur längst ner så att man vet vem som utvecklat appen
-        TextView signature = text("StudioRyssby 2026", 12,
-                darkMode ? Color.rgb(126, 146, 158) : Color.rgb(140, 158, 168));
+        TextView signature = text("StudioRyssby 2026", 14,
+                darkMode ? Color.rgb(165, 185, 198) : Color.rgb(84, 104, 118));
+        signature.setTypeface(null, 1); // fet stil så att den syns tydligt
         signature.setGravity(Gravity.CENTER);
-        page.addView(signature, marginParams(0, 16, 0, 0));
+        page.addView(signature, marginParams(0, 20, 0, 8));
 
         setContentView(scrollView);
     }
