@@ -54,6 +54,11 @@ public class MainActivity extends Activity {
     private TextView currentDetails;
     private TextView weatherIcon;
     private TextView locationLabel;
+    private TextView subtitleLabel;
+    private TextView dayHeading;
+    private Button backToNowButton;
+    private int selectedForecastDay = -1;
+    private final List<LinearLayout> forecastRows = new ArrayList<>();
     private TextView status;
     private ProgressBar progress;
     private EditText cityInput;
@@ -133,8 +138,8 @@ public class MainActivity extends Activity {
         renderFavorites();
         page.addView(favoritesContainer, matchWrap());
 
-        TextView subtitle = text("Väder just nu", 14, darkMode ? Color.rgb(187, 205, 216) : Color.rgb(96, 116, 130));
-        page.addView(subtitle, marginParams(0, 2, 0, 14));
+        subtitleLabel = text("Väder just nu", 14, darkMode ? Color.rgb(187, 205, 216) : Color.rgb(96, 116, 130));
+        page.addView(subtitleLabel, marginParams(0, 2, 0, 14));
 
         LinearLayout current = new LinearLayout(this);
         current.setOrientation(LinearLayout.VERTICAL);
@@ -142,6 +147,12 @@ public class MainActivity extends Activity {
         current.setBackground(cardBackground(darkMode ? Color.rgb(26, 47, 68) : Color.rgb(213, 235, 245), 26));
         current.setElevation(dp(3));
         page.addView(current, marginParams(0, 0, 0, 20));
+
+        // Rubrik med dagens namn + datum när en prognosdag är vald
+        dayHeading = text("", 20, darkMode ? Color.rgb(255, 214, 102) : Color.rgb(41, 98, 255));
+        dayHeading.setTypeface(null, 1);
+        dayHeading.setVisibility(View.GONE);
+        current.addView(dayHeading, matchWrap());
 
         LinearLayout tempRow = new LinearLayout(this);
         tempRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -166,6 +177,16 @@ public class MainActivity extends Activity {
         currentWind = text("Vind -- m/s", 16, darkMode ? Color.rgb(220, 234, 245) : Color.rgb(36, 79, 92));
         currentWind.setPadding(0, dp(5), 0, 0);
         current.addView(currentWind, matchWrap());
+
+        // Knapp för att återgå till Väder just nu
+        backToNowButton = new Button(this);
+        backToNowButton.setText("Väder nu");
+        backToNowButton.setAllCaps(false);
+        backToNowButton.setTextColor(Color.WHITE);
+        backToNowButton.setBackground(cardBackground(Color.rgb(25, 116, 126), 14));
+        backToNowButton.setOnClickListener(view -> showLiveWeather());
+        backToNowButton.setVisibility(View.GONE);
+        current.addView(backToNowButton, marginParams(0, 6, 0, 0));
 
         TextView forecastTitle = text("5-dagarsprognos", 22, darkMode ? Color.WHITE : Color.rgb(19, 57, 79));
         forecastTitle.setTypeface(null, 1);
@@ -334,16 +355,13 @@ public class MainActivity extends Activity {
 
     private void showWeather(WeatherData data, String cityName) {
         locationLabel.setText(cityName);
-        currentTemperature.setText(numberFormat.format(data.temperature) + " °C");
-        currentWind.setText("Vind " + numberFormat.format(data.wind) + " m/s");
-        currentCondition.setText(weatherDescription(data.temperature, data.wind));
-        currentCondition.setTextColor(weatherTextColor(data.temperature));
-        weatherIcon.setText(weatherIconFor(data.temperature, data.wind));
         forecastContainer.removeAllViews();
         lastData = data;
         if (selectedHourlyDay >= data.days.length) {
             selectedHourlyDay = 0;
         }
+        selectedForecastDay = -1; // alltid börja med Väder just nu
+        forecastRows.clear();
         renderHourlySection(data);
 
         for (WeatherDay day : data.days) {
@@ -353,6 +371,12 @@ public class MainActivity extends Activity {
             row.setPadding(dp(16), dp(14), dp(16), dp(14));
             row.setBackground(cardBackground(Color.WHITE, 18));
             row.setElevation(dp(2));
+            forecastRows.add(row);
+            row.setOnClickListener(view -> {
+                int index = forecastRows.indexOf(row);
+                selectedForecastDay = (selectedForecastDay == index) ? -1 : index;
+                updateCurrentCard();
+            });
 
             LinearLayout dayInfo = new LinearLayout(this);
             dayInfo.setOrientation(LinearLayout.VERTICAL);
@@ -399,9 +423,73 @@ public class MainActivity extends Activity {
             forecastContainer.addView(row, marginParams(0, 0, 0, 8));
         }
 
+        updateCurrentCard();
+
         status.setText("Uppdaterad nu");
         refreshButton.setEnabled(true);
         progress.setVisibility(View.GONE);
+    }
+
+    /** Uppdaterar översta kortet: Väder just nu eller prognos för vald dag. */
+    private void updateCurrentCard() {
+        if (lastData == null || lastData.days.length == 0) {
+            return;
+        }
+        boolean liveMode = selectedForecastDay < 0 || selectedForecastDay >= lastData.days.length;
+        WeatherDay day = lastData.days[liveMode ? 0 : selectedForecastDay];
+
+        subtitleLabel.setText(liveMode ? "Väder just nu" : "Prognos");
+        dayHeading.setVisibility(liveMode ? View.GONE : View.VISIBLE);
+        backToNowButton.setVisibility(liveMode ? View.GONE : View.VISIBLE);
+        if (!liveMode) {
+            dayHeading.setText(chipLabel(day.date));
+        }
+
+        for (int i = 0; i < forecastRows.size(); i++) {
+            LinearLayout row = forecastRows.get(i);
+            row.setBackground(cardBackground(i == selectedForecastDay
+                    ? Color.rgb(186, 216, 255) : Color.WHITE, 18));
+        }
+
+        String detaljer = "Max " + numberFormat.format(day.max) + "° • Min "
+                + numberFormat.format(day.min) + "° • Regn " + numberFormat.format(day.rain) + " mm";
+        if (liveMode) {
+            weatherIcon.setText(weatherIconFor(lastData.temperature, lastData.wind));
+            currentTemperature.setText(numberFormat.format(lastData.temperature) + " °C");
+            currentCondition.setText(weatherDescription(lastData.temperature, lastData.wind));
+            currentCondition.setTextColor(weatherTextColor(lastData.temperature));
+            currentDetails.setText(detaljer);
+            currentWind.setText("Vind " + numberFormat.format(lastData.wind) + " m/s");
+        } else {
+            double maxWind = maxWindForDay(day.date);
+            weatherIcon.setText("📅");
+            currentTemperature.setText(numberFormat.format(day.max) + " °C");
+            currentCondition.setText("Prognos för dagen");
+            currentCondition.setTextColor(darkMode ? Color.rgb(193, 219, 246) : Color.rgb(36, 79, 92));
+            currentDetails.setText(detaljer);
+            currentWind.setText("Vind upp till "
+                    + (maxWind > 0 ? numberFormat.format(maxWind) : "--") + " m/s");
+        }
+    }
+
+    /** Återgår till Väder just nu. */
+    private void showLiveWeather() {
+        selectedForecastDay = -1;
+        updateCurrentCard();
+    }
+
+    /** Högsta vindstyrkan under dygnet för ett datum (ur timdatat). */
+    private double maxWindForDay(String date) {
+        double max = 0;
+        if (lastData != null) {
+            String prefix = date + "T";
+            for (WeatherHour hour : lastData.hours) {
+                if (hour.time.startsWith(prefix) && !Double.isNaN(hour.wind)) {
+                    max = Math.max(max, hour.wind);
+                }
+            }
+        }
+        return max;
     }
 
     private String weekday(String date) {
