@@ -29,19 +29,19 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 /**
- * Grafiskt gränssnitt (Swing) för väderappen.
+ * Swing interface for the weather app.
  */
 public class WeatherGui {
 
-    private static final Locale SV_LOCALE = new Locale("sv", "SE");
+    private static final Locale SV_LOCALE = new Locale("en", "GB");
     private static final Color BLA = new Color(30, 105, 170);
     private static final Color LJUS_BLA = new Color(226, 241, 250);
     private static final Color BAKGRUND = new Color(246, 249, 251);
     private static final Color TEXT = new Color(35, 45, 55);
 
-    /** Namn på klockslagen som visas under timdiagrammet. */
+    /** The names of the hours shown under the hourly chart. */
     private static final String[] TIDSNAVN = {
-            "Midnatt", "Natt", "Morgon", "Förmiddag", "Lunch", "Eftermiddag", "Kväll", "Sen kväll"
+            "Midnight", "Night", "Morning", "Late morning", "Noon", "Afternoon", "Evening", "Late evening"
     };
 
     private JFrame frame;
@@ -59,32 +59,32 @@ public class WeatherGui {
     private JButton uppdateraKnapp;
     private javax.swing.Timer autoUppdaterare;
 
-    /** Skapar och visar fönstret. */
+    /** Creates and shows the window. */
     public static void visa() {
         try {
-            // Använd systemets utseende så att appen ser ut som ett vanligt program i Mint
+            // Use the system look so the app looks like a normal program in Mint
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
-            // Spelar ingen roll – defaultutseendet duger också
+            // Does not matter — the default look is fine too
         }
 
         SwingUtilities.invokeLater(() -> new WeatherGui().skapaFoerestraedelse());
     }
 
     private void skapaFoerestraedelse() {
-        frame = new JFrame("Väder – Ryssby");
+        frame = new JFrame("Weather – Ryssby");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout(0, 10));
         frame.getContentPane().setBackground(BAKGRUND);
         frame.getRootPane().setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
 
-        // --- Överst: rubrik + aktuell temperatur ---
+        // --- Top: heading and current temperature ---
         JPanel topp = new JPanel();
         topp.setLayout(new javax.swing.BoxLayout(topp, javax.swing.BoxLayout.Y_AXIS));
         topp.setBackground(LJUS_BLA);
         topp.setBorder(BorderFactory.createEmptyBorder(16, 12, 16, 12));
 
-        JLabel rubrik = new JLabel("Väder för Ryssby", SwingConstants.CENTER);
+        JLabel rubrik = new JLabel("Weather for Ryssby", SwingConstants.CENTER);
         rubrik.setFont(rubrik.getFont().deriveFont(Font.BOLD, 18f));
         rubrik.setForeground(BLA);
         rubrik.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -105,11 +105,11 @@ public class WeatherGui {
         frame.add(topp, BorderLayout.NORTH);
 
         // --- Mitten: 5-dagarsprognosen i en tabell ---
-        String[] kolumner = {"Dag", "Max (°C)", "Min (°C)", "Regn (mm)"};
+        String[] kolumner = {"Day", "Max (°C)", "Min (°C)", "Rain (mm)"};
         tableModel = new DefaultTableModel(kolumner, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // tabellen ska inte gå att redigera
+                return false; // the table must not be editable
             }
         };
 
@@ -135,7 +135,7 @@ public class WeatherGui {
                 return this;
             }
         });
-        // Klicka på en dag i tabellen för att se regnet timme för timme
+        // Click a day in the table to see the rain hour by hour
         tabell.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tabell.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && senasteData != null) {
@@ -154,8 +154,8 @@ public class WeatherGui {
         regnPanel.setBackground(Color.WHITE);
         regnPanel.setForeground(TEXT);
 
-        String[] intervallKolumner = {"Intervall", "Klockslag 1", "Klockslag 2", "Klockslag 3",
-            "Klockslag 4", "Klockslag 5", "Klockslag 6"};
+        String[] intervallKolumner = {"Band", "Hour 1", "Hour 2", "Hour 3",
+            "Hour 4", "Hour 5", "Hour 6"};
         intervallModel = new DefaultTableModel(intervallKolumner, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -191,21 +191,21 @@ public class WeatherGui {
             intervallTabell.getColumnModel().getColumn(kolumn).setPreferredWidth(58);
         }
 
-        skrivUtKnapp = new JButton("Skriv ut intervall");
+        skrivUtKnapp = new JButton("Print bands");
         skrivUtKnapp.setEnabled(false);
         skrivUtKnapp.addActionListener(e -> skrivUtIntervall());
 
         JPanel intervallPanel = new JPanel(new BorderLayout(0, 4));
         intervallPanel.setBackground(BAKGRUND);
         intervallPanel.setPreferredSize(new Dimension(0, 245));
-        JLabel intervallRubrik = new JLabel("Tidsintervall – varje rad visar sex klockslag");
+        JLabel intervallRubrik = new JLabel("Time bands – each row shows six hours");
         intervallRubrik.setFont(intervallRubrik.getFont().deriveFont(Font.BOLD, 13f));
         intervallRubrik.setForeground(TEXT);
         intervallPanel.add(intervallRubrik, BorderLayout.NORTH);
         intervallPanel.add(new JScrollPane(intervallTabell), BorderLayout.CENTER);
         intervallPanel.add(skrivUtKnapp, BorderLayout.SOUTH);
 
-        // Tabell + timdiagram staplade ovanpå varandra
+        // Table and hourly chart stacked on top of each other
         JPanel mitten = new JPanel();
         mitten.setLayout(new javax.swing.BoxLayout(mitten, javax.swing.BoxLayout.Y_AXIS));
         mitten.setBackground(BAKGRUND);
@@ -224,9 +224,9 @@ public class WeatherGui {
         JPanel botten = new JPanel(new BorderLayout(8, 0));
         botten.setBackground(BLA);
         botten.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
-        statusLabel = new JLabel("Startar…");
+        statusLabel = new JLabel("Starting…");
         statusLabel.setForeground(Color.WHITE);
-        uppdateraKnapp = new JButton("Uppdatera");
+        uppdateraKnapp = new JButton("Refresh");
         uppdateraKnapp.setBackground(Color.WHITE);
         uppdateraKnapp.setForeground(BLA);
         uppdateraKnapp.addActionListener(e -> hamtaVader());
@@ -235,26 +235,26 @@ public class WeatherGui {
         frame.add(botten, BorderLayout.SOUTH);
 
         frame.setSize(700, 850);
-        frame.setLocationRelativeTo(null); // centrera på skärmen
+        frame.setLocationRelativeTo(null); // centre on screen
         frame.setVisible(true);
 
-        hamtaVader(); // hämta vädret direkt när appen startar
+        hamtaVader(); // fetch the weather as soon as the app starts
 
-        // Håll vädret aktuellt: uppdatera automatiskt var 10:e minut
-        // (open-meteos modeller uppdateras ändå bara ca var 15:e minut)
+        // Keep the weather current: refresh automatically every 10 minutes
+        // (open-meteo's models are only updated roughly every 15 minutes anyway)
         autoUppdaterare = new javax.swing.Timer(10 * 60 * 1000, e -> hamtaVader());
         autoUppdaterare.start();
     }
 
-    /** Hämtar väderdatat i bakgrunden så att fönstret inte fryser. */
+    /** Fetches the weather data in the background so the window does not freeze. */
     private void hamtaVader() {
-        // Starta om nedräkningen för automatisk uppdatering
+        // Restart the countdown for the automatic refresh
         if (autoUppdaterare != null) {
             autoUppdaterare.restart();
         }
 
         uppdateraKnapp.setEnabled(false);
-        statusLabel.setText("Hämtar väderdata…");
+        statusLabel.setText("Fetching weather data…");
 
         new SwingWorker<WeatherService.VaderData, Void>() {
             @Override
@@ -267,13 +267,13 @@ public class WeatherGui {
                 try {
                     visaVader(get());
                     String tid = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
-                    statusLabel.setText("Uppdaterad " + tid);
+                    statusLabel.setText("Updated " + tid);
                 } catch (Exception e) {
-                    statusLabel.setText("Misslyckades att hämta vädret.");
+                    statusLabel.setText("Failed to fetch the weather.");
                     JOptionPane.showMessageDialog(frame,
-                            "Kunde inte hämta vädret. Kontrollera din internetanslutning.\n\n"
+                            "Could not fetch the weather. Check your internet connection.\n\n"
                                     + e.getMessage(),
-                            "Fel", JOptionPane.ERROR_MESSAGE);
+                            "Error", JOptionPane.ERROR_MESSAGE);
                 } finally {
                     uppdateraKnapp.setEnabled(true);
                 }
@@ -281,13 +281,13 @@ public class WeatherGui {
         }.execute();
     }
 
-    /** Fyller fönstret med hämtad väderdata. */
+    /** Fills the window with the fetched weather data. */
     private void visaVader(WeatherService.VaderData vader) {
         senasteData = vader;
         tempLabel.setText(formatera(vader.temperatur()) + " °C");
-        vindLabel.setText("Vind: " + formatera(vader.vindhastighet()) + " m/s");
+        vindLabel.setText("Wind: " + formatera(vader.vindhastighet()) + " m/s");
 
-        tableModel.setRowCount(0); // töm tabellen
+        tableModel.setRowCount(0); // clear the table
         List<WeatherService.DagsPrognos> dagar = vader.dagar();
         for (int i = 0; i < 7 && i < dagar.size(); i++) {
             WeatherService.DagsPrognos dag = dagar.get(i);
@@ -299,7 +299,7 @@ public class WeatherGui {
             });
         }
 
-        // Uppdatera timdiagrammet med vald dag (välj första dagen som standard)
+        // Update the hourly chart with the selected day (the first day by default)
         int rad = tabell.getSelectedRow();
         if ((rad < 0 || rad >= dagar.size()) && !dagar.isEmpty()) {
             tabell.setRowSelectionInterval(0, 0);
@@ -318,13 +318,13 @@ public class WeatherGui {
         return String.format(SV_LOCALE, "%.1f", tal);
     }
 
-    /** Formaterar till veckodag och datum (t.ex. "Torsdag 05/09"). */
+    /** Formaterar till veckodag och datum (t.ex. "Thursday 05/09"). */
     private static String formateraDag(LocalDate datum) {
         String dag = datum.format(DateTimeFormatter.ofPattern("EEEE dd/MM", SV_LOCALE));
         return dag.substring(0, 1).toUpperCase(SV_LOCALE) + dag.substring(1);
     }
 
-    /** Returnerar nederbörden per timme (24 värden) för en viss dag. */
+    /** Returns the precipitation per hour (24 values) for a given day. */
     private double[] regnForDag(LocalDate dag) {
         double[] res = new double[24];
         if (senasteData != null) {
@@ -337,11 +337,11 @@ public class WeatherGui {
         return res;
     }
 
-    /** Visar alla timvärden samlade i natt-, morgon-, eftermiddags- och kvällsintervall. */
+    /** Shows all hourly values grouped into night, morning, afternoon and evening bands. */
     private void visaIntervall(LocalDate dag, double[] regn) {
         valdDag = dag;
         intervallModel.setRowCount(0);
-        String[] namn = {"Natt (00–06)", "Morgon (06–12)", "Eftermiddag (12–18)", "Kväll (18–24)"};
+        String[] namn = {"Night (00–06)", "Morning (06–12)", "Afternoon (12–18)", "Evening (18–24)"};
         for (int intervall = 0; intervall < 4; intervall++) {
             int start = intervall * 6;
             Object[] rad = new Object[7];
@@ -355,7 +355,7 @@ public class WeatherGui {
         skrivUtKnapp.setEnabled(true);
     }
 
-    /** Returnerar true när en intervallcell innehåller mer än 0,0 mm regn. */
+    /** Returns true when a band cell holds more than 0.0 mm of rain. */
     private static boolean harNederbord(String text) {
         try {
             String mm = text.replace("mm", "").trim().replace(',', '.');
@@ -373,19 +373,19 @@ public class WeatherGui {
         try {
             boolean utskriven = intervallTabell.print(
                     JTable.PrintMode.FIT_WIDTH,
-                    new java.text.MessageFormat("Väderintervall – " + formateraDag(valdDag)),
+                    new java.text.MessageFormat("Weather bands – " + formateraDag(valdDag)),
                     null);
             if (!utskriven) {
-                statusLabel.setText("Utskriften avbröts.");
+                statusLabel.setText("Printing cancelled.");
             }
         } catch (java.awt.print.PrinterException e) {
             JOptionPane.showMessageDialog(frame,
-                    "Kunde inte skriva ut intervallen.\n\n" + e.getMessage(),
-                    "Utskriftsfel", JOptionPane.ERROR_MESSAGE);
+                    "Could not print the bands.\n\n" + e.getMessage(),
+                    "Print error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    /** Ritar ett enkelt stapeldiagram med nederbörden timme för timme. */
+    /** Draws a simple bar chart with the precipitation hour by hour. */
     private class RegnPanel extends JPanel {
         private LocalDate dag;
         private double[] regn = new double[0];
@@ -407,7 +407,7 @@ public class WeatherGui {
 
             if (regn.length == 0) {
                 g.setColor(getForeground());
-                g.drawString("Välj en dag i tabellen ovan för att se regnet timme för timme.", 12, 22);
+                g.drawString("Pick a day in the table above to see the rain hour by hour.", 12, 22);
                 return;
             }
 
@@ -418,17 +418,17 @@ public class WeatherGui {
                 summa += v;
             }
 
-            // Rubrik med dagens total (använd temats textfärg så att den
-            // syns i både mörka och ljusa teman)
+            // Heading with the day's total (use the theme's text colour so that it
+            // shows in both dark and light themes)
             g.setColor(getForeground());
             g.setFont(g.getFont().deriveFont(Font.BOLD, 16f));
-            g.drawString("Nederbörd per timme – " + formateraDag(dag)
+            g.drawString("Precipitation per hour – " + formateraDag(dag)
                     + String.format(SV_LOCALE, "   (totalt %.1f mm)", summa), 12, 20);
-            // Nederbördssiffrorna ovanför staplarna ska vara extra tydliga.
+            // The precipitation numbers above the bars should be extra clear.
             g.setFont(g.getFont().deriveFont(20f));
 
-            int botten = hojd - 22;         // staplarna står på denna linje
-            int maxBarHojd = botten - 34;   // utrymme för staplarna
+            int botten = hojd - 22;         // the bars stand on this line
+            int maxBarHojd = botten - 34;   // room for the bars
             int steg = Math.max(1, (bredd - 24) / regn.length);
             int stapelBredd = Math.max(3, steg - 2);
 
@@ -437,8 +437,8 @@ public class WeatherGui {
             g.drawLine(12, botten, bredd - 12, botten);
             g.setFont(g.getFont().deriveFont(13f));
 
-            // Etiketterna varvar mellan två nivåer när timmar med regn
-            // ligger bredvid varandra, så att siffrorna inte krockar
+            // The labels alternate between two levels when hours with rain
+            // sit next to each other, so the numbers do not collide
             int forraRegnTimme = -2;
             boolean hogNiva = false;
 
@@ -447,12 +447,12 @@ public class WeatherGui {
                 int bh = maxMm > 0 ? (int) Math.round(regn[i] / maxMm * maxBarHojd) : 0;
 
                 if (bh > 0) {
-                    // Mörkare blå för kraftigt regn (>= 1 mm)
+                    // Darker blue for heavy rain (>= 1 mm)
                     g.setColor(regn[i] >= 1.0 ? new Color(41, 98, 255) : new Color(108, 160, 220));
                     g.fillRect(x + 1, botten - bh, stapelBredd, bh);
 
-                    // Antal mm ovanför stapeln där det är nederbörd
-                    // (hela tal från 10 mm, annars en decimal)
+                    // Number of mm above the bar where there is precipitation
+                    // (whole numbers from 10 mm, otherwise one decimal)
                     String antal = regn[i] >= 10 ? String.format(SV_LOCALE, "%.0f", regn[i])
                                                  : String.format(SV_LOCALE, "%.1f", regn[i]);
                     hogNiva = (i == forraRegnTimme + 1) ? !hogNiva : false;
@@ -464,7 +464,7 @@ public class WeatherGui {
                     g.drawString(antal, xText, yText);
                 }
 
-                // Skriv ut tidsnamn var tredje timme, i två rader så att
+                // Print the hour name every third hour, on two lines so that
                 // namnen inte krockar med varandra
                 if (i % 3 == 0) {
                     g.setColor(getForeground());
@@ -480,7 +480,7 @@ public class WeatherGui {
 
             if (summa == 0) {
                 g.setColor(getForeground());
-                g.drawString("Ingen nederbörd den här dagen ☀", 12, botten - maxBarHojd / 2);
+                g.drawString("No precipitation this day ☀", 12, botten - maxBarHojd / 2);
             }
         }
     }

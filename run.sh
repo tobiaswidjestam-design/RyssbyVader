@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Startar väderappen (kompilera först om out/ saknas).
+# Starts the weather app (compiles first if out/ is missing).
 cd "$(dirname "$0")"
 
 if [ ! -d out ]; then

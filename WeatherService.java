@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Hämtar och tolkar väderdata för Ryssby från open-meteo.com.
+ * Fetches and parses the weather data for Ryssby from open-meteo.com.
  */
 public class WeatherService {
 
@@ -26,17 +26,17 @@ public class WeatherService {
             + "&hourly=precipitation"
             + "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto";
 
-    /** Prognosen för en enskild dag. */
+    /** The forecast for a single day. */
     public record DagsPrognos(LocalDate datum, double maxTemp, double minTemp, double regn) {}
 
-    /** Nederbörden för en enskild timme. */
+    /** The precipitation for a single hour. */
     public record TimmarsNederbord(LocalDateTime tid, double mm) {}
 
-    /** All väderdata som GUI:t/konsolen visar. */
+    /** All weather data that the GUI and the console display. */
     public record VaderData(double temperatur, double vindhastighet,
                             List<DagsPrognos> dagar, List<TimmarsNederbord> timmar) {}
 
-    /** Hämtar väderdatat från API:et och tolkar svaret. */
+    /** Fetches the weather data from the API and parses the response. */
     public static VaderData hamtaVader() throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(URL))
@@ -46,15 +46,15 @@ public class WeatherService {
 
         HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() != 200) {
-            throw new IllegalStateException("API:et svarade med HTTP " + response.statusCode());
+            throw new IllegalStateException("The API responded with HTTP " + response.statusCode());
         }
         String json = response.body();
 
-        // 1. Hämta aktuell temperatur och vind (under "current_weather")
+        // 1. Fetch the current temperature and wind (under "current_weather")
         double temp = hamtaTal(json, "current_weather", "temperature");
         double vind = hamtaTal(json, "current_weather", "windspeed");
 
-        // 2. Hämta daglig data (under "daily")
+        // 2. Fetch the daily data (under "daily")
         int dailyIdx = json.indexOf("\"daily\":");
         String[] dates = hamtaArray(json, dailyIdx, "time");
         String[] maxDays = hamtaArray(json, dailyIdx, "temperature_2m_max");
@@ -70,7 +70,7 @@ public class WeatherService {
                     hamtaTalEller(precipDays, i)));
         }
 
-        // 3. Hämta nederbörd per timme (under "hourly")
+        // 3. Fetch the precipitation per hour (under "hourly")
         int hourlyIdx = json.indexOf("\"hourly\":");
         String[] hourlyTider = hamtaArray(json, hourlyIdx, "time");
         String[] hourlyRegn = hamtaArray(json, hourlyIdx, "precipitation");
@@ -89,9 +89,9 @@ public class WeatherService {
         int sektionIdx = sektion == null ? 0 : json.indexOf("\"" + sektion + "\":");
         int nyckelIdx = json.indexOf("\"" + nyckel + "\":", sektionIdx);
         if (nyckelIdx == -1) {
-            throw new IllegalStateException("Kunde inte hitta \"" + nyckel + "\" i svaret.");
+            throw new IllegalStateException("Could not find \"" + nyckel + "\" in the response.");
         }
-        int start = nyckelIdx + nyckel.length() + 3; // hoppa förbi citattecken och kolon
+        int start = nyckelIdx + nyckel.length() + 3; // skip past the quote and the colon
         int slut = json.indexOf(",", start);
         if (slut == -1) {
             slut = json.indexOf("}", start);
@@ -107,7 +107,7 @@ public class WeatherService {
         }
         int start = json.indexOf("[", nyckelIdx);
         int slut = json.indexOf("]", start);
-        // Tar bort citattecken kring värdena (t.ex. datumen)
+        // Strip the quotes around the values (such as the dates)
         return json.substring(start + 1, slut).replace("\"", "").split(",");
     }
 
@@ -115,14 +115,14 @@ public class WeatherService {
         return i < arr.length ? Double.parseDouble(arr[i].trim()) : 0;
     }
 
-    /** Skriver ut vädret som text (gamla konsolläget, --console). */
+    /** Prints the weather as text (the old console mode, --console). */
     public static void skrivKonsol(VaderData vader) {
-        Locale svLocale = new Locale("sv", "SE");
+        Locale svLocale = new Locale("en", "GB");
 
-        System.out.println("=== VÄDER FÖR RYSSBY ===");
-        System.out.println("Just nu: " + formatera(vader.temperatur(), svLocale) + " °C"
-                + ", Vind: " + formatera(vader.vindhastighet(), svLocale) + " m/s\n");
-        System.out.println("Prognos kommande dagar:");
+        System.out.println("=== WEATHER FOR RYSSBY ===");
+        System.out.println("Right now: " + formatera(vader.temperatur(), svLocale) + " °C"
+                + ", Wind: " + formatera(vader.vindhastighet(), svLocale) + " m/s\n");
+        System.out.println("Forecast for the coming days:");
 
         List<DagsPrognos> dagar = vader.dagar();
         for (int i = 0; i < 7 && i < dagar.size(); i++) {
@@ -130,11 +130,11 @@ public class WeatherService {
             System.out.println(formateraDag(dag.datum(), svLocale)
                     + " -> Max: " + formatera(dag.maxTemp(), svLocale) + " °C"
                     + ", Min: " + formatera(dag.minTemp(), svLocale) + " °C"
-                    + ", Regn: " + formatera(dag.regn(), svLocale) + " mm");
+                    + ", Rain: " + formatera(dag.regn(), svLocale) + " mm");
         }
     }
 
-    /** Formaterar till veckodag och datum (t.ex. "Torsdag 05/09") med stor begynnelsebokstav. */
+    /** Formaterar till veckodag och datum (t.ex. "Thursday 05/09") med stor begynnelsebokstav. */
     private static String formateraDag(LocalDate datum, Locale svLocale) {
         String formattedDay = datum.format(DateTimeFormatter.ofPattern("EEEE dd/MM", svLocale));
         return formattedDay.substring(0, 1).toUpperCase(svLocale) + formattedDay.substring(1);

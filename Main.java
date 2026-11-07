@@ -3,13 +3,13 @@ import javax.swing.SwingUtilities;
 public class Main {
 
     public static void main(String[] args) {
-        // Kör med argumentet "--console" för det gamla textläget,
-        // annars startar appen med grafiskt fönster.
+        // Run with the argument "--console" for the old console mode,
+        // otherwise the app starts in a graphical window.
         if (args.length > 0 && args[0].equalsIgnoreCase("--console")) {
             try {
                 WeatherService.skrivKonsol(WeatherService.hamtaVader());
             } catch (Exception e) {
-                System.out.println("Ett fel uppstod vid anropet: " + e.getMessage());
+                System.out.println("An error occurred during the request: " + e.getMessage());
             }
         } else {
             SwingUtilities.invokeLater(() -> WeatherGui.visa());

@@ -40,7 +40,7 @@ import java.util.concurrent.Executors;
 public class MainActivity extends Activity {
     private static final String DEFAULT_CITY = "Ryssby";
     private static final String GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
-            + "?name=%s&count=1&language=sv&format=json";
+            + "?name=%s&count=1&language=en&format=json";
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final List<String> favoriteCities = new ArrayList<>(Arrays.asList("Ryssby", "Boda Glasbruk", "Cebu City", "Bohol"));
@@ -95,7 +95,7 @@ public class MainActivity extends Activity {
         headerRow.addView(locationLabel, titleParams);
 
         darkModeButton = new Button(this);
-        darkModeButton.setText(darkMode ? "Ljus" : "Mörkt");
+        darkModeButton.setText(darkMode ? "Light" : "Dark");
         darkModeButton.setTextColor(Color.WHITE);
         darkModeButton.setBackground(cardBackground(Color.rgb(41, 98, 255), 12));
         darkModeButton.setOnClickListener(view -> toggleDarkMode());
@@ -108,7 +108,7 @@ public class MainActivity extends Activity {
         searchRow.setPadding(0, dp(8), 0, dp(14));
 
         cityInput = new EditText(this);
-        cityInput.setHint("Sök stad");
+        cityInput.setHint("Search city");
         cityInput.setText("Boda Glasbruk");
         cityInput.setTextSize(16f);
         cityInput.setSingleLine(true);
@@ -125,7 +125,7 @@ public class MainActivity extends Activity {
         searchRow.addView(cityInput, inputParams);
 
         Button searchButton = new Button(this);
-        searchButton.setText("Sök");
+        searchButton.setText("Search");
         searchButton.setTextColor(Color.WHITE);
         searchButton.setBackground(cardBackground(Color.rgb(25, 116, 126), 12));
         searchButton.setOnClickListener(view -> loadWeather());
@@ -138,7 +138,7 @@ public class MainActivity extends Activity {
         renderFavorites();
         page.addView(favoritesContainer, matchWrap());
 
-        subtitleLabel = text("Väder just nu", 14, darkMode ? Color.rgb(187, 205, 216) : Color.rgb(96, 116, 130));
+        subtitleLabel = text("Weather right now", 14, darkMode ? Color.rgb(187, 205, 216) : Color.rgb(96, 116, 130));
         page.addView(subtitleLabel, marginParams(0, 2, 0, 14));
 
         LinearLayout current = new LinearLayout(this);
@@ -148,7 +148,7 @@ public class MainActivity extends Activity {
         current.setElevation(dp(3));
         page.addView(current, marginParams(0, 0, 0, 20));
 
-        // Rubrik med dagens namn + datum när en prognosdag är vald
+        // Heading with the day's name and date when a forecast day is selected
         dayHeading = text("", 20, darkMode ? Color.rgb(255, 214, 102) : Color.rgb(41, 98, 255));
         dayHeading.setTypeface(null, 1);
         dayHeading.setVisibility(View.GONE);
@@ -166,21 +166,21 @@ public class MainActivity extends Activity {
         tempRow.addView(currentTemperature, new LinearLayout.LayoutParams(-2, -2));
         current.addView(tempRow, matchWrap());
 
-        currentCondition = text("Lätt molnigt", 15, darkMode ? Color.rgb(193, 219, 246) : Color.rgb(36, 79, 92));
+        currentCondition = text("Partly cloudy", 15, darkMode ? Color.rgb(193, 219, 246) : Color.rgb(36, 79, 92));
         currentCondition.setPadding(0, dp(2), 0, 0);
         current.addView(currentCondition, matchWrap());
 
-        currentDetails = text("Max --° • Min --° • Regn -- mm", 14, darkMode ? Color.rgb(188, 217, 255) : Color.rgb(44, 118, 185));
+        currentDetails = text("Max --° • Min --° • Rain -- mm", 14, darkMode ? Color.rgb(188, 217, 255) : Color.rgb(44, 118, 185));
         currentDetails.setPadding(0, dp(4), 0, 0);
         current.addView(currentDetails, matchWrap());
 
-        currentWind = text("Vind -- m/s", 16, darkMode ? Color.rgb(220, 234, 245) : Color.rgb(36, 79, 92));
+        currentWind = text("Wind -- m/s", 16, darkMode ? Color.rgb(220, 234, 245) : Color.rgb(36, 79, 92));
         currentWind.setPadding(0, dp(5), 0, 0);
         current.addView(currentWind, matchWrap());
 
-        // Knapp för att återgå till Väder just nu
+        // Button to go back to Weather right now
         backToNowButton = new Button(this);
-        backToNowButton.setText("Väder nu");
+        backToNowButton.setText("Weather now");
         backToNowButton.setAllCaps(false);
         backToNowButton.setTextColor(Color.WHITE);
         backToNowButton.setBackground(cardBackground(Color.rgb(25, 116, 126), 14));
@@ -188,7 +188,7 @@ public class MainActivity extends Activity {
         backToNowButton.setVisibility(View.GONE);
         current.addView(backToNowButton, marginParams(0, 6, 0, 0));
 
-        TextView forecastTitle = text("5-dagarsprognos", 22, darkMode ? Color.WHITE : Color.rgb(19, 57, 79));
+        TextView forecastTitle = text("5-day forecast", 22, darkMode ? Color.WHITE : Color.rgb(19, 57, 79));
         forecastTitle.setTypeface(null, 1);
         page.addView(forecastTitle, marginParams(0, 0, 0, 10));
 
@@ -196,11 +196,11 @@ public class MainActivity extends Activity {
         forecastContainer.setOrientation(LinearLayout.VERTICAL);
         page.addView(forecastContainer, matchWrap());
 
-        TextView hourlyTitle = text("Timme för timme", 22, darkMode ? Color.WHITE : Color.rgb(19, 57, 79));
+        TextView hourlyTitle = text("Hour by hour", 22, darkMode ? Color.WHITE : Color.rgb(19, 57, 79));
         hourlyTitle.setTypeface(null, 1);
         page.addView(hourlyTitle, marginParams(0, 18, 0, 10));
 
-        // Dagväljare: en knapp per dag i prognosen
+        // Day picker: one button per forecast day
         HorizontalScrollView chipScroll = new HorizontalScrollView(this);
         chipScroll.setHorizontalScrollBarEnabled(false);
         hourlyChips = new LinearLayout(this);
@@ -218,23 +218,23 @@ public class MainActivity extends Activity {
         LinearLayout footer = new LinearLayout(this);
         footer.setGravity(Gravity.CENTER_VERTICAL);
         footer.setPadding(0, dp(18), 0, 0);
-        status = text("Startar...", 14, Color.rgb(79, 96, 103));
+        status = text("Starting...", 14, Color.rgb(79, 96, 103));
         footer.addView(status, new LinearLayout.LayoutParams(0, -2, 1));
         progress = new ProgressBar(this);
         progress.setVisibility(View.GONE);
         footer.addView(progress, new LinearLayout.LayoutParams(dp(28), dp(28)));
         refreshButton = new Button(this);
-        refreshButton.setText("Uppdatera");
+        refreshButton.setText("Refresh");
         refreshButton.setTextColor(Color.WHITE);
         refreshButton.setBackground(cardBackground(Color.rgb(25, 116, 126), 14));
         refreshButton.setOnClickListener(view -> loadWeather());
         footer.addView(refreshButton, new LinearLayout.LayoutParams(-2, -2));
         page.addView(footer, matchWrap());
 
-        // Signatur längst ner så att man vet vem som utvecklat appen
+        // Signature at the bottom so it is clear who built the app
         TextView signature = text("StudioRyssby 2026", 14,
                 darkMode ? Color.rgb(165, 185, 198) : Color.rgb(84, 104, 118));
-        signature.setTypeface(null, 1); // fet stil så att den syns tydligt
+        signature.setTypeface(null, 1); // bold so it stands out
         signature.setGravity(Gravity.CENTER);
         page.addView(signature, marginParams(0, 20, 0, 8));
 
@@ -253,7 +253,7 @@ public class MainActivity extends Activity {
     private void loadWeatherForCity(String city) {
         refreshButton.setEnabled(false);
         progress.setVisibility(View.VISIBLE);
-        status.setText("Hämtar väder för " + city + "...");
+        status.setText("Fetching weather for " + city + "...");
         executor.execute(() -> {
             try {
                 GeoLocation location = geocodeCity(city);
@@ -284,7 +284,7 @@ public class MainActivity extends Activity {
             JSONObject root = new JSONObject(body.toString());
             JSONArray results = root.optJSONArray("results");
             if (results == null || results.length() == 0) {
-                throw new IllegalArgumentException("Hittade ingen stad med namnet \"" + city + "\".");
+                throw new IllegalArgumentException("Could not find a city named \"" + city + "\".");
             }
             JSONObject place = results.getJSONObject(0);
             return new GeoLocation(
@@ -361,7 +361,7 @@ public class MainActivity extends Activity {
         if (selectedHourlyDay >= data.days.length) {
             selectedHourlyDay = 0;
         }
-        selectedForecastDay = -1; // alltid börja med Väder just nu
+        selectedForecastDay = -1; // always start with Weather right now
         forecastRows.clear();
         renderHourlySection(data);
 
@@ -414,7 +414,7 @@ public class MainActivity extends Activity {
             rainBlock.setGravity(Gravity.END);
             rainBlock.setPadding(dp(12), 0, 0, 0);
 
-            TextView rainLabel = text("Regn", 11, Color.rgb(39, 116, 136));
+            TextView rainLabel = text("Rain", 11, Color.rgb(39, 116, 136));
             rainLabel.setGravity(Gravity.END);
             rainBlock.addView(rainLabel, matchWrap());
 
@@ -431,12 +431,12 @@ public class MainActivity extends Activity {
 
         updateCurrentCard();
 
-        status.setText("Uppdaterad nu");
+        status.setText("Updated now");
         refreshButton.setEnabled(true);
         progress.setVisibility(View.GONE);
     }
 
-    /** Uppdaterar översta kortet: Väder just nu eller prognos för vald dag. */
+    /** Updates the top card: weather right now, or the forecast for the selected day. */
     private void updateCurrentCard() {
         if (lastData == null || lastData.days.length == 0) {
             return;
@@ -444,7 +444,7 @@ public class MainActivity extends Activity {
         boolean liveMode = selectedForecastDay < 0 || selectedForecastDay >= lastData.days.length;
         WeatherDay day = lastData.days[liveMode ? 0 : selectedForecastDay];
 
-        subtitleLabel.setText(liveMode ? "Väder just nu" : "Prognos");
+        subtitleLabel.setText(liveMode ? "Weather right now" : "Forecast");
         dayHeading.setVisibility(liveMode ? View.GONE : View.VISIBLE);
         backToNowButton.setVisibility(liveMode ? View.GONE : View.VISIBLE);
         if (!liveMode) {
@@ -458,33 +458,33 @@ public class MainActivity extends Activity {
         }
 
         String detaljer = "Max " + numberFormat.format(day.max) + "° • Min "
-                + numberFormat.format(day.min) + "° • Regn " + numberFormat.format(day.rain) + " mm";
+                + numberFormat.format(day.min) + "° • Rain " + numberFormat.format(day.rain) + " mm";
         if (liveMode) {
             weatherIcon.setText(weatherIconFor(lastData.temperature, lastData.wind));
             currentTemperature.setText(numberFormat.format(lastData.temperature) + " °C");
             currentCondition.setText(weatherDescription(lastData.temperature, lastData.wind));
             currentCondition.setTextColor(weatherTextColor(lastData.temperature));
             currentDetails.setText(detaljer);
-            currentWind.setText("Vind " + numberFormat.format(lastData.wind) + " m/s");
+            currentWind.setText("Wind " + numberFormat.format(lastData.wind) + " m/s");
         } else {
             double maxWind = maxWindForDay(day.date);
             weatherIcon.setText(iconForWeatherCode(day.code));
             currentTemperature.setText(numberFormat.format(day.max) + " °C");
-            currentCondition.setText("Prognos för dagen");
+            currentCondition.setText("Forecast for the day");
             currentCondition.setTextColor(darkMode ? Color.rgb(193, 219, 246) : Color.rgb(36, 79, 92));
             currentDetails.setText(detaljer);
-            currentWind.setText("Vind upp till "
+            currentWind.setText("Wind up to "
                     + (maxWind > 0 ? numberFormat.format(maxWind) : "--") + " m/s");
         }
     }
 
-    /** Återgår till Väder just nu. */
+    /** Goes back to Weather right now. */
     private void showLiveWeather() {
         selectedForecastDay = -1;
         updateCurrentCard();
     }
 
-    /** Högsta vindstyrkan under dygnet för ett datum (ur timdatat). */
+    /** The highest wind speed during a date (from the hourly data). */
     private double maxWindForDay(String date) {
         double max = 0;
         if (lastData != null) {
@@ -498,7 +498,7 @@ public class MainActivity extends Activity {
         return max;
     }
 
-    /** Väderikon utifrån WMO-väderkoden från Open-Meteo. */
+    /** Weather icon from the WMO weather code from Open-Meteo. */
     private static String iconForWeatherCode(int code) {
         switch (code) {
             case 0: return "☀️";
@@ -535,7 +535,7 @@ public class MainActivity extends Activity {
 
     private String weekday(String date) {
         DayOfWeek dayOfWeek = LocalDate.parse(date).getDayOfWeek();
-        return dayOfWeek.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("sv-SE"));
+        return dayOfWeek.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("en-GB"));
     }
 
     private String compactDate(String date) {
@@ -555,21 +555,21 @@ public class MainActivity extends Activity {
 
     private String weatherDescription(double temperature, double wind) {
         if (temperature >= 22 && wind < 8) {
-            return "Soligt och skönt";
+            return "Sunny and clear";
         }
         if (temperature >= 16) {
-            return "Lätt molnigt";
+            return "Partly cloudy";
         }
         if (temperature <= 2) {
-            return "Snöigt";
+            return "Snowy";
         }
         if (wind >= 8) {
-            return "Blåsigt";
+            return "Windy";
         }
         if (temperature <= 8) {
-            return "Kallt";
+            return "Cold";
         }
-        return "Skiftande väder";
+        return "Changeable weather";
     }
 
     private String weatherIconFor(double temperature, double wind) {
@@ -630,7 +630,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    /** Ritar dagväljarna och timkorten (00:00–23:00) för vald dag. */
+    /** Draws the day pickers and the hourly cards (00:00–23:00) for the selected day. */
     private void renderHourlySection(WeatherData data) {
         hourlyChips.removeAllViews();
         hourlyContainer.removeAllViews();
@@ -688,9 +688,9 @@ public class MainActivity extends Activity {
         }
     }
 
-    /** Kort etikett för en dag, t.ex. "Tis 8/9". */
+    /** Short label for a day, e.g. "Tue 8/9". */
     private static String chipLabel(String date) {
-        Locale sv = new Locale("sv", "SE");
+        Locale sv = new Locale("en", "GB");
         LocalDate dag = LocalDate.parse(date);
         String vardag = dag.getDayOfWeek().getDisplayName(TextStyle.SHORT, sv);
         return vardag.substring(0, 1).toUpperCase(sv) + vardag.substring(1)
@@ -698,10 +698,10 @@ public class MainActivity extends Activity {
     }
 
     private void showError(Exception exception) {
-        status.setText("Kunde inte hämta väderdata");
+        status.setText("Could not fetch weather data");
         refreshButton.setEnabled(true);
         progress.setVisibility(View.GONE);
-        String message = exception.getMessage() != null ? exception.getMessage() : "Okänt fel";
+        String message = exception.getMessage() != null ? exception.getMessage() : "Unknown error";
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 

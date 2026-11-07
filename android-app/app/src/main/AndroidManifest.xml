@@ -4,7 +4,7 @@
 
     <application
         android:allowBackup="true"
-        android:label="Väder för Ryssby"
+        android:label="Weather for Ryssby"
         android:supportsRtl="true"
         android:theme="@style/Theme.RyssbyVader">
         <activity
